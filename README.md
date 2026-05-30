@@ -1,3 +1,5 @@
+```
+
 azure-landing-zone-foundations
 │
 ├── README.md
@@ -16,4 +18,6 @@ azure-landing-zone-foundations
 │
 ├── terraform/
 │
-└── enterprise-scenarios/
+└── enterprise-scenarios
+
+```
