@@ -1,350 +1,108 @@
-# Migration Considerations
+# Subscription Strategy
 
+## Overview
 
+Azure subscriptions provide logical, administrative, and billing boundaries within an Azure tenant.
 
-## 1. Overview
+A well-designed subscription strategy improves security, governance, cost management, and operational efficiency.
 
+## Why Multiple Subscriptions?
 
+Using a single subscription for all workloads creates challenges:
 
-This document outlines the approach for transitioning from a traditional on-premises environment to a cloud-first architecture based on Microsoft Entra ID, Intune and Microsoft 365.
+* Difficult cost allocation
+* Limited delegation options
+* Increased operational risk
+* Complex governance
 
+Enterprise environments typically use multiple subscriptions.
 
+## Recommended Subscription Model
 
-The migration is designed to be:
+### Platform Subscriptions
 
+```text
+Identity Subscription
+Connectivity Subscription
+Management Subscription
+```
 
+### Workload Subscriptions
 
-- phased
+```text
+Production Subscription
+Development Subscription
+Testing Subscription
+Sandbox Subscription
+```
 
-- low-risk
+## Identity Subscription
 
-- aligned with business needs
+Contains:
 
-- minimally disruptive to users
+* Microsoft Entra ID integrations
+* Domain Services
+* Identity-related services
 
+Purpose:
 
+* Centralized identity management
+* Reduced attack surface
+* Administrative separation
 
----
+## Connectivity Subscription
 
+Contains:
 
+* Hub VNet
+* Azure Firewall
+* VPN Gateway
+* ExpressRoute Gateway
+* Bastion
 
-## 2. Current State Assumptions
+Purpose:
 
+* Shared networking services
 
+## Management Subscription
 
-Typical starting conditions may include:
+Contains:
 
+* Log Analytics Workspace
+* Azure Monitor
+* Update Manager
+* Automation Accounts
+* Recovery Services Vault
 
+Purpose:
 
-- users managed in on-premises Active Directory
+* Centralized operations management
 
-- domain-joined devices
+## Production vs Non-Production
 
-- limited or no MFA
+Production workloads should always be isolated from development and testing environments.
 
-- file shares hosted locally
+Benefits:
 
-- legacy applications (payroll, accounting)
+* Security separation
+* Independent RBAC
+* Easier cost tracking
+* Reduced operational risk
 
-- GIS/CAD workloads stored on local servers
+## Sandbox Subscription
 
-- minimal endpoint management standardization
+Used for:
 
+* Training
+* Proof of Concepts
+* Experimental deployments
 
+Sandbox subscriptions typically have fewer permissions and stricter spending limits.
 
----
+## Design Recommendations
 
-
-
-## 3. Target State
-
-
-
-The target architecture includes:
-
-
-
-- users managed in Microsoft Entra ID
-
-- Entra ID joined devices
-
-- device management via Intune
-
-- Microsoft 365 for collaboration
-
-- MFA and Conditional Access enforced
-
-- on-premises services retained only where necessary
-
-- segmented and secured office network
-
-
-
----
-
-
-
-## 4. Migration Phases
-
-
-
-### Phase 1 – Foundation
-
-
-
-- review tenant configuration
-
-- define naming conventions and group structure
-
-- assign licenses
-
-- configure administrative roles
-
-- enable MFA
-
-- implement baseline Conditional Access policies
-
-
-
----
-
-
-
-### Phase 2 – Endpoint Modernization
-
-
-
-- pilot Entra ID joined devices
-
-- enroll devices into Intune
-
-- configure compliance policies
-
-- deploy configuration profiles
-
-- deploy core applications (Office, Teams, browser)
-
-
-
----
-
-
-
-### Phase 3 – Productivity Migration
-
-
-
-- enable OneDrive for users
-
-- migrate shared documents to SharePoint
-
-- adopt Teams for collaboration
-
-- reduce dependency on local file shares
-
-
-
----
-
-
-
-### Phase 4 – On-Premises Workload Review
-
-
-
-- identify applications that must remain local
-
-- validate payroll and accounting systems
-
-- confirm GIS storage strategy
-
-- define access controls for local resources
-
-
-
----
-
-
-
-### Phase 5 – Optimization and Cleanup
-
-
-
-- remove unused accounts and permissions
-
-- refine Conditional Access policies
-
-- standardize device configurations
-
-- provide user training
-
-- validate backup and recovery processes
-
-
-
----
-
-
-
-## 5. Workloads to Retain On-Premises
-
-
-
-The following workloads should not be migrated immediately:
-
-
-
-- payroll systems
-
-- accounting applications
-
-- GIS/CAD data and storage
-
-- legacy applications requiring local infrastructure
-
-
-
-These should be reviewed periodically for modernization opportunities.
-
-
-
----
-
-
-
-## 6. Risks and Dependencies
-
-
-
-Potential risks include:
-
-
-
-- incompatibility with legacy applications
-
-- user resistance to new workflows
-
-- insufficient data classification
-
-- performance issues if large datasets are moved to cloud
-
-- licensing limitations
-
-- incomplete device compliance
-
-
-
-Dependencies:
-
-
-
-- stable internet connectivity
-
-- proper licensing (Entra, Intune, M365)
-
-- user training and adoption
-
-
-
----
-
-
-
-## 7. User Impact
-
-
-
-Users will experience changes such as:
-
-
-
-- new login experience (Entra ID)
-
-- MFA prompts
-
-- new file storage locations (OneDrive/SharePoint)
-
-- increased use of Teams
-
-- changes in application access methods
-
-
-
-Proper communication and training are essential.
-
-
-
----
-
-
-
-## 8. Rollback and Fallback Strategy
-
-
-
-To reduce risk:
-
-
-
-- migration should be performed in phases
-
-- pilot groups should be used before full rollout
-
-- critical on-prem services should remain available during transition
-
-- fallback procedures should be documented
-
-- backups must be verified before major changes
-
-
-
----
-
-
-
-## 9. Success Criteria
-
-
-
-The migration is considered successful when:
-
-
-
-- users authenticate via Entra ID
-
-- devices are managed via Intune
-
-- MFA is enforced
-
-- core business applications remain operational
-
-- users can access required data without disruption
-
-- no major incidents occur during transition
-
-
-
----
-
-
-
-## 10. Summary
-
-
-
-A successful migration requires:
-
-
-
-- careful planning
-
-- phased execution
-
-- realistic expectations
-
-- alignment with business requirements
-
-
-
-This approach ensures a smooth transition to a modern, secure and manageable cloud-first environment while maintaining operational continuity.
-
+* Separate production and non-production workloads.
+* Separate shared platform services.
+* Implement subscription-level RBAC.
+* Apply Azure Policies consistently.
+* Monitor subscription spending.
