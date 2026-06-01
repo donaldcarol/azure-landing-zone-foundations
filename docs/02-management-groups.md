@@ -1,3 +1,4 @@
+```
 Tenant Root Group
 │
 ├── Platform
@@ -9,3 +10,4 @@ Tenant Root Group
 │
 └── NonProduction
 
+```
