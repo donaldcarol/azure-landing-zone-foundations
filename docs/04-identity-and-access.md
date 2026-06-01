@@ -1,374 +1,115 @@
-# Identity and Device Management
+# Identity and Access Management
 
+## Overview
 
+Identity is the primary security boundary in Microsoft Azure.
 
-## 1. Overview
+A secure Azure Landing Zone relies on centralized identity management, strong authentication, least-privilege access, and continuous governance.
 
+## Microsoft Entra ID
 
+Microsoft Entra ID provides:
 
-This document describes how identity and endpoint management are implemented using Microsoft Entra ID and Microsoft Intune.
+* Authentication
+* Authorization
+* Identity governance
+* Conditional Access
+* Single Sign-On (SSO)
 
+All Azure resources depend on Microsoft Entra ID for access control.
 
+## Role-Based Access Control (RBAC)
 
-The goal is to replace traditional Active Directory and Group Policy with a modern cloud-based approach.
+RBAC provides granular permissions to Azure resources.
 
+Common roles:
 
+| Role                      | Purpose            |
+| ------------------------- | ------------------ |
+| Owner                     | Full control       |
+| Contributor               | Manage resources   |
+| Reader                    | View-only access   |
+| User Access Administrator | Manage permissions |
 
----
+## Principle of Least Privilege
 
+Users should receive only the permissions required to perform their tasks.
 
+Benefits:
 
-## 2. Identity Platform
+* Reduced attack surface
+* Improved compliance
+* Better operational control
 
+## Multi-Factor Authentication
 
+MFA should be mandatory for:
 
-Microsoft Entra ID is used as the primary identity provider.
+* Administrators
+* Privileged users
+* Remote access users
 
+Benefits:
 
+* Protection against password compromise
+* Reduced identity-based attacks
 
-### Key characteristics:
+## Conditional Access
 
-- Cloud-managed identities
-
-- Central authentication point
-
-- Integration with Microsoft 365
-
-- Supports Conditional Access and MFA
-
-
-
----
-
-
-
-## 3. User Management
-
-
-
-### User creation
-
-- Users are created directly in Entra ID
-
-- Naming convention: firstname.lastname@company.com
-
-
-
-### Group structure
-
-
-
-Groups are used for:
-
-
-
-- application access
-
-- device policies
-
-- department segmentation
-
-
+Conditional Access enables policy-based access decisions.
 
 Examples:
 
+* Require MFA outside trusted locations
+* Block legacy authentication
+* Restrict access from unmanaged devices
 
+## Privileged Identity Management (PIM)
 
-- GRP-Sales
+PIM provides:
 
-- GRP-HR
+* Just-In-Time administration
+* Approval workflows
+* Time-limited role activation
+* Audit trails
 
-- GRP-IT
+## Managed Identities
 
-- APP-CRM-Users
+Managed Identities eliminate the need to store credentials in applications.
 
-- DEV-Standard-Users
+Types:
 
+### System Assigned
 
+Lifecycle tied to a resource.
 
----
+### User Assigned
 
+Reusable across multiple resources.
 
+## Service Principals
 
-## 4. Device Enrollment
+Applications authenticate to Azure using Service Principals.
 
+Common use cases:
 
+* CI/CD pipelines
+* Automation
+* Infrastructure deployment
 
-All endpoints are:
+## Break Glass Accounts
 
+Emergency administrator accounts should:
 
+* Exclude Conditional Access policies
+* Use strong passwords
+* Be monitored and tested regularly
 
-- Entra ID joined
+## Design Recommendations
 
-- Enrolled into Intune
-
-
-
-### Enrollment methods:
-
-- Windows Autopilot (preferred)
-
-- Manual enrollment (fallback)
-
-
-
----
-
-
-
-## 5. Device Provisioning (Autopilot)
-
-
-
-Typical process:
-
-
-
-1\. Device is delivered to user
-
-2\. User signs in with Entra account
-
-3\. Device joins Entra ID
-
-4\. Intune enrollment is triggered
-
-5\. Policies and applications are deployed automatically
-
-
-
-This enables zero-touch provisioning.
-
-
-
----
-
-
-
-## 6. Configuration Management
-
-
-
-Intune replaces traditional GPO.
-
-
-
-### Configuration includes:
-
-
-
-- security settings
-
-- device restrictions
-
-- Wi-Fi and VPN profiles
-
-- browser settings
-
-- OS configurations
-
-
-
----
-
-
-
-## 7. Compliance Policies
-
-
-
-Devices must meet defined security requirements:
-
-
-
-- encryption enabled
-
-- antivirus active
-
-- firewall enabled
-
-- OS up to date
-
-
-
-Non-compliant devices can be blocked via Conditional Access.
-
-
-
----
-
-
-
-## 8. Application Deployment
-
-
-
-Applications are deployed through Intune:
-
-
-
-- Microsoft 365 Apps
-
-- Teams
-
-- browsers
-
-- business applications
-
-- Win32 packaged apps
-
-
-
----
-
-
-
-## 9. Update Management
-
-
-
-- Windows Update rings
-
-- staged deployment
-
-- automatic patching
-
-
-
----
-
-
-
-## 10. Access Control
-
-
-
-Access to applications is controlled by:
-
-
-
-- user identity
-
-- group membership
-
-- device compliance
-
-- Conditional Access policies
-
-
-
----
-
-
-
-## 11. Onboarding Process
-
-
-
-1\. Create user in Entra ID
-
-2\. Assign groups
-
-3\. Assign licenses
-
-4\. Provide device (Autopilot)
-
-5\. User logs in and receives configuration
-
-
-
----
-
-
-
-## 12. Offboarding Process
-
-
-
-1\. Disable account
-
-2\. Revoke sessions
-
-3\. Remove access
-
-4\. Transfer data
-
-5\. Wipe or retire device
-
-
-
----
-
-
-
-## 13. Hybrid Considerations
-
-
-
-If required:
-
-
-
-- minimal on-prem AD may be retained
-
-- used only for:
-
-&#x20; - file shares
-
-&#x20; - legacy applications
-
-&#x20; - server management
-
-
-
-However, user authentication remains cloud-based.
-
-
-
-\---
-
-
-
-## 14. Benefits
-
-
-
-- simplified management
-
-- centralized control
-
-- improved security
-
-- better remote support
-
-- reduced infrastructure dependency
-
-
-
----
-
-
-
-## 15. Challenges
-
-
-
-- legacy application compatibility
-
-- user training
-
-- initial setup complexity
-
-- dependency on cloud services
-
-
-
----
-
-
-
-## 16. Summary
-
-
-
-This model provides a modern identity and device management approach using Entra ID and Intune, replacing traditional AD/GPO while supporting both cloud and selected on-prem workloads.
-
+* Enable MFA for all privileged accounts.
+* Use Conditional Access.
+* Implement PIM.
+* Prefer Managed Identities over secrets.
+* Minimize Global Administrator usage.
+* Maintain emergency access accounts.
