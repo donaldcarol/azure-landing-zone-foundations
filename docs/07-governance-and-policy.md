@@ -1,346 +1,386 @@
-# Architecture Overview
+# Governance and Policy
 
+## Overview
 
+Governance ensures that Azure resources are deployed, managed, and operated according to organizational standards.
 
-## 1. Purpose
+Without governance, cloud environments often become difficult to manage, expensive, inconsistent, and non-compliant.
 
+Azure Landing Zones use governance controls to enforce standards across subscriptions, resource groups, and workloads.
 
+## Governance Objectives
 
-This document describes a cloud-first architecture designed for a small to medium-sized organization (50–250 users), combining Microsoft Entra ID, Intune and Microsoft 365 with selected on-premises services for business-critical workloads.
+The primary goals of governance are:
 
+* Standardization
+* Security
+* Compliance
+* Cost Control
+* Operational Consistency
+* Risk Reduction
 
+## Governance Architecture
 
-The goal is to modernize identity, endpoint management and collaboration while maintaining operational stability for legacy or performance-sensitive systems.
+Azure governance is typically implemented through:
 
+```text
+Management Groups
+    |
+Azure Policy
+    |
+Subscriptions
+    |
+Resource Groups
+    |
+Resources
+```
 
+Policies and permissions are inherited throughout the hierarchy.
 
----
+## Management Groups
 
+Management Groups provide centralized governance for multiple subscriptions.
 
+Benefits:
 
-## 2. Business Context
+* Policy inheritance
+* RBAC inheritance
+* Organizational structure
+* Compliance enforcement
 
+Example:
 
+```text
+Tenant Root Group
+│
+├── Platform
+│
+├── Production
+│
+├── NonProduction
+│
+└── Sandbox
+```
 
-The target organization has the following characteristics:
+Policies assigned at higher levels automatically apply to child subscriptions.
 
+## Azure Policy
 
+Azure Policy is the primary governance tool in Azure.
 
-- Single primary office location
+It evaluates resources and ensures compliance with organizational standards.
 
-- 50–250 employees
+Policy effects include:
 
-- Windows-based endpoints
+* Audit
+* Deny
+* Append
+* Modify
+* DeployIfNotExists
 
-- Microsoft 365 for collaboration
+## Example Policies
 
-- Business applications for payroll and accounting
+### Allowed Regions
 
-- A GIS/urbanism department working with large files
+Restrict resource deployment to approved locations.
 
-- Limited need for Azure-hosted infrastructure
+Example:
 
-- Desire to reduce on-premises complexity without disrupting operations
+```text
+Allowed:
+West Europe
+North Europe
 
+Denied:
+East US
+Southeast Asia
+```
 
+### Required Tags
 
----
+Every resource must contain:
 
+```text
+Environment
+Owner
+CostCenter
+Application
+BusinessUnit
+```
 
+### Allowed Resource Types
 
-## 3. Design Principles
+Example:
 
+```text
+Allow:
+Virtual Machines
+Storage Accounts
+Key Vault
 
+Deny:
+Unapproved Services
+```
 
-### Cloud-first, not cloud-only
+### Public IP Restrictions
 
-Cloud services are used where they provide clear benefits, while on-premises services are retained where necessary.
+Example:
 
+```text
+Deny:
+Public IP creation for virtual machines
+```
 
+### Encryption Requirements
 
-### Simplicity over complexity
+Example:
 
-Avoid unnecessary Azure infrastructure such as VPN gateways when not required.
+```text
+Require:
+Disk Encryption
+Storage Encryption
+TLS 1.2+
+```
 
+## Initiative Definitions
 
+Policy initiatives group multiple policies together.
 
-### Identity as the security perimeter
+Example:
 
-Access control is based on identity, device compliance and Conditional Access rather than network location.
+```text
+Security Baseline Initiative
+│
+├── Require Tags
+├── Require Encryption
+├── Restrict Regions
+├── Restrict Public IPs
+└── Enforce Diagnostics
+```
 
+Benefits:
 
+* Easier management
+* Consistent compliance controls
+* Simplified reporting
 
-### Performance-aware design
+## Resource Naming Standards
 
-Workloads with high I/O or large files (e.g. GIS) remain on local storage.
+Consistent naming improves administration and troubleshooting.
 
+Example:
 
+### Resource Groups
 
-### Incremental modernization
+```text
+rg-prod-network-weu
+rg-prod-app-weu
+rg-dev-app-weu
+```
 
-The architecture supports gradual migration rather than a full “big bang” transformation.
+### Virtual Networks
 
+```text
+vnet-hub-weu
+vnet-prod-app-weu
+```
 
+### Virtual Machines
 
----
+```text
+vm-prod-web01
+vm-prod-app01
+vm-dev-web01
+```
 
+### Storage Accounts
 
+```text
+stprodlogsweu
+stdevbackupweu
+```
 
-## 4. High-Level Architecture
+## Tagging Strategy
 
+Tags provide metadata for resources.
 
+Recommended tags:
 
-The solution is divided into two main areas:
+| Tag          | Example       |
+| ------------ | ------------- |
+| Environment  | Production    |
+| Owner        | IT Operations |
+| CostCenter   | CC100         |
+| Application  | ERP           |
+| BusinessUnit | Finance       |
 
+Benefits:
 
+* Cost reporting
+* Automation
+* Resource ownership tracking
+* Governance reporting
 
-### Cloud Layer
+## Resource Locks
 
-- Microsoft Entra ID (identity)
+Resource locks prevent accidental changes.
 
-- Microsoft Intune (device management)
+Types:
 
-- Microsoft 365 (productivity and collaboration)
+### Delete Lock
 
-- Security controls (MFA, Conditional Access, compliance)
+Prevents deletion.
 
+### ReadOnly Lock
 
+Prevents modification.
 
-### On-Premises Layer
+Example use cases:
 
-- Office network (LAN, Wi-Fi, firewall)
+* Production databases
+* Shared networking resources
+* Key Vaults
+* Log Analytics Workspaces
 
-- Application server (payroll, accounting)
+## Cost Governance
 
-- File server or NAS (GIS, large datasets)
+Cloud governance must include financial controls.
 
-- Printers and scanners
+Recommendations:
 
+### Budgets
 
+Create subscription budgets.
 
----
+Example:
 
+```text
+Production Budget:
+5000 EUR/month
 
+Development Budget:
+1000 EUR/month
+```
 
-## 5. Identity Model
+### Cost Alerts
 
+Generate notifications when thresholds are exceeded.
 
+Examples:
 
-- All users are created and managed in Microsoft Entra ID
+```text
+50%
+75%
+90%
+100%
+```
 
-- Authentication is cloud-based
+### Resource Cleanup
 
-- MFA is enforced for all users
+Regularly remove:
 
-- Conditional Access policies control access to applications
+* Unused disks
+* Unused public IPs
+* Expired test environments
+* Orphaned resources
 
-- Administrative roles are separated from standard user accounts
+## Role-Based Access Control
 
+Governance includes permission management.
 
+Recommendations:
 
----
+* Use groups instead of individual assignments
+* Minimize Owner role assignments
+* Apply least privilege
+* Review permissions regularly
 
+Example:
 
+```text
+Platform Team
+  -> Contributor
 
-## 6. Device Management Model
+Security Team
+  -> Security Administrator
 
+Audit Team
+  -> Reader
+```
 
+## Compliance Management
 
-All endpoints are:
+Governance helps support compliance frameworks.
 
+Examples:
 
+* ISO 27001
+* CIS Benchmark
+* NIST
+* GDPR
 
-- Entra ID joined
+Microsoft Defender for Cloud provides compliance dashboards and recommendations.
 
-- Managed by Microsoft Intune  
-- Configured using compliance policies and configuration profiles
+## Monitoring Governance Compliance
 
+Compliance should be monitored continuously.
 
+Tools:
 
-Typical baseline includes:
+* Azure Policy Compliance
+* Defender for Cloud
+* Azure Monitor
+* Log Analytics
 
+Key metrics:
 
+* Policy compliance percentage
+* Non-compliant resources
+* Resource drift
+* Cost anomalies
 
-- BitLocker encryption  
-- Microsoft Defender enabled
+## Example Governance Baseline
 
-- Firewall enabled
+```text
+Management Groups
+├── Platform
+├── Production
+├── NonProduction
+└── Sandbox
 
-- Automatic updates
+Policies
+├── Allowed Regions
+├── Required Tags
+├── Encryption Required
+├── No Public IPs
+└── Diagnostics Enabled
 
-- Standard application set (Office, Teams, browser)
+RBAC
+├── Least Privilege
+├── Group Assignments
+└── PIM
 
+Cost Controls
+├── Budgets
+├── Alerts
+└── Reporting
+```
 
+## Design Recommendations
 
----
+* Implement Management Groups early.
+* Use Azure Policy extensively.
+* Enforce resource tagging.
+* Define naming standards before deployment.
+* Restrict resource locations.
+* Apply RBAC consistently.
+* Monitor policy compliance regularly.
+* Create budgets and cost alerts.
+* Protect critical resources with locks.
+* Use policy initiatives whenever possible.
 
+## Conclusion
 
+Governance is the framework that ensures Azure resources remain secure, compliant, standardized, and cost-effective over time.
 
-## 7. Application Strategy
-
-
-
-### Cloud-based applications
-
-- Exchange Online
-
-- Microsoft Teams
-
-- SharePoint Online
-
-- OneDrive
-
-
-
-### On-premises applications
-
-- Payroll systems
-
-- Accounting software
-
-- Legacy line-of-business applications
-
-
-
-These remain local due to compatibility, licensing or operational constraints.
-
-
-
----
-
-
-
-## 8. Data Strategy
-
-
-
-### Cloud storage
-
-- OneDrive for personal files
-
-- SharePoint for team collaboration
-
-
-
-### Local storage
-
-- File server or NAS for:
-
-&#x20; - GIS data
-
-&#x20; - CAD files
-
-&#x20; - large datasets
-
-&#x20; - high-performance workloads
-
-
-
----
-
-
-
-## 9. Networking Approach
-
-
-
-- No site-to-site VPN to Azure
-
-- Cloud services accessed directly over the internet
-
-- Office network segmented using VLANs
-
-- Firewall enforces access control between segments
-
-
-
----
-
-
-
-## 10. Security Model
-
-
-
-Key controls include:
-
-
-
-- Multi-Factor Authentication (MFA)
-
-- Conditional Access
-
-- Device compliance enforcement
-
-- BitLocker encryption
-
-- Endpoint protection (Defender)
-
-- Network segmentation
-
-- Restricted access to servers
-
-
-
----
-
-
-
-## 11. Benefits of This Approach
-
-
-
-- Reduced infrastructure complexity
-
-- Improved security posture
-
-- Modern device management
-
-- Better remote access experience
-
-- Optimized performance for local workloads
-
-- Scalable and adaptable architecture
-
-
-
----
-
-
-
-## 12. Limitations
-
-
-
-- Some legacy applications remain on-premises
-
-- GIS workloads are not cloud-native
-
-- No full zero-infrastructure model
-
-- Requires careful network design and segmentation
-
-
-
----
-
-
-
-## 13. Future Evolution
-
-
-
-Potential future steps include:
-
-
-
-- Gradual migration of selected workloads to Azure
-
-- Adoption of Universal Print
-
-- Integration with advanced security services (Defender suite)
-
-- Hybrid identity (if required for legacy scenarios)
-
-- Cloud-based backup or DR solutions
-
+Management Groups, Azure Policy, RBAC, tagging, naming standards, and cost controls work together to provide a scalable governance model for enterprise Azure environments.
