@@ -1,340 +1,362 @@
 # Security Baseline
 
+## Overview
 
+Security is a foundational principle of every Azure Landing Zone.
 
-## 1. Overview
+A secure Azure environment should implement layered security controls across identity, networking, workloads, data, and operations.
 
+The goal is to reduce the attack surface, enforce governance, detect threats, and respond to security incidents effectively.
 
+## Security Principles
 
-This document defines the security baseline for a cloud-first architecture using Microsoft Entra ID, Intune and Microsoft 365, combined with selected on-premises services.
+The security baseline is built around the following principles:
 
+* Zero Trust
+* Least Privilege
+* Defense in Depth
+* Assume Breach
+* Continuous Monitoring
+* Secure by Default
 
+## Zero Trust Model
 
-The goal is to implement a strong, practical security posture suitable for a 50–250 user organization without excessive complexity.
+Azure Landing Zones should follow the Zero Trust approach.
 
+Core principles:
 
+* Verify explicitly
+* Use least privilege access
+* Assume breach
 
----
+Every access request should be authenticated, authorized, and continuously validated.
 
+## Identity Security
 
+Identity is the primary security boundary in Azure.
 
-## 2. Security Principles
+### Microsoft Entra ID
 
+All users, applications, and services should authenticate through Microsoft Entra ID.
 
+### Multi-Factor Authentication
 
-- Identity is the primary security boundary
+MFA should be mandatory for:
 
-- Assume breach mindset (Zero Trust principles)
+* Administrators
+* Privileged users
+* Remote access users
 
-- Least privilege access
+Benefits:
 
-- Device trust and compliance
+* Reduced account compromise risk
+* Protection against password attacks
 
-- Network segmentation
+### Conditional Access
 
-- Minimize attack surface
+Recommended policies:
 
-- Monitor and respond
+* Require MFA
+* Block legacy authentication
+* Restrict access from risky locations
+* Require compliant devices
 
+### Privileged Identity Management
 
+Use PIM for privileged roles.
 
----
+Benefits:
 
+* Just-In-Time access
+* Approval workflows
+* Reduced standing privileges
+* Audit trail
 
+### Break Glass Accounts
 
-## 3. Identity Security
+Maintain emergency administrator accounts.
 
+Requirements:
 
+* Strong passwords
+* Separate monitoring
+* Excluded from Conditional Access
+* Tested regularly
 
-### Multi-Factor Authentication (MFA)
+## Access Control
 
-- Required for all users
+Role-Based Access Control (RBAC) should be used throughout the environment.
 
-- Enforced via Conditional Access
+Recommended practices:
 
-- Prefer authenticator apps over SMS
+* Assign permissions to groups
+* Minimize Owner assignments
+* Use custom roles only when necessary
+* Review permissions regularly
 
+Typical role assignments:
 
+```text
+Platform Team -> Contributor
+Security Team -> Security Admin
+Auditors -> Reader
+Application Team -> Contributor
+```
 
-### Conditional Access Policies
+## Network Security
 
+Network controls provide an additional security layer.
 
+### Network Security Groups
 
-Minimum recommended policies:
+Use NSGs to control:
 
+* Inbound traffic
+* Outbound traffic
+* Application segmentation
 
+### Azure Firewall
 
-1\. Require MFA for all users
+Centralize traffic inspection through Azure Firewall.
 
-2\. Block legacy authentication
+Capabilities:
 
-3\. Require compliant device for sensitive apps
+* Application filtering
+* Network filtering
+* Threat intelligence
+* Logging
 
-4\. Apply stricter controls for admins
+### Bastion
 
-5\. Optional: restrict access by location
+Use Azure Bastion for administrative access.
 
+Avoid exposing:
 
+* RDP
+* SSH
 
----
+directly to the internet.
 
+### Private Endpoints
 
+Use Private Endpoints for:
 
-## 4. Privileged Access
+* Storage Accounts
+* Azure SQL
+* Key Vault
+* App Services
 
+This reduces public exposure.
 
+## Data Protection
 
-- Separate admin accounts from user accounts
+Data must be protected both at rest and in transit.
 
-- No daily use of privileged accounts
+### Encryption at Rest
 
-- Limit number of global admins
+Azure services provide encryption by default.
 
-- Use role-based access control (RBAC)
+Examples:
 
-- Consider Just-In-Time access (PIM) where available
+* Managed Disks
+* Azure Storage
+* Azure SQL Database
 
+### Encryption in Transit
 
+Use TLS for all communications.
 
----
+Recommendations:
 
+* TLS 1.2 or higher
+* HTTPS everywhere
+* Disable legacy protocols
 
+### Key Management
 
-## 5. Device Security (Intune)
+Use Azure Key Vault to store:
 
+* Secrets
+* Certificates
+* Encryption keys
 
+Benefits:
 
-### Compliance Policies
+* Centralized management
+* Auditability
+* Reduced credential exposure
 
-Devices must meet:
+## Compute Security
 
+Virtual machines should follow secure configuration standards.
 
+Recommendations:
 
-- BitLocker enabled
+* Remove unnecessary software
+* Apply security updates
+* Disable unused services
+* Use Defender for Endpoint
+* Restrict local administrator access
 
-- Firewall enabled
+## Azure Policy
 
-- Antivirus enabled
+Azure Policy helps enforce security standards.
 
-- OS version compliant
+Example policies:
 
-- No jailbreak/root
+* Require resource tags
+* Require managed disks
+* Restrict allowed locations
+* Require encryption
+* Deny public IP creation
 
+Example:
 
+```text
+Deny:
+Public IP addresses on virtual machines
+```
 
-### Configuration Profiles
+## Defender for Cloud
 
-- Disable insecure settings
+Microsoft Defender for Cloud provides:
 
-- Enforce password/PIN policies
+* Secure Score
+* Security recommendations
+* Vulnerability assessment
+* Threat detection
+* Regulatory compliance tracking
 
-- Configure screen lock timeout
+Recommended approach:
 
-- Restrict removable media (optional)
+* Review Secure Score regularly
+* Remediate high-risk findings first
+* Enable Defender plans where appropriate
 
+## Logging and Monitoring
 
+Security controls must be monitored continuously.
 
----
+### Azure Monitor
 
+Collect:
 
+* Metrics
+* Alerts
+* Diagnostic logs
 
-## 6. Endpoint Protection
+### Log Analytics Workspace
 
+Centralized log collection.
 
+Examples:
 
-- Microsoft Defender enabled
+* Activity Logs
+* Sign-In Logs
+* Security Logs
+* VM Logs
 
-- Real-time protection active
+### Alerting
 
-- Cloud protection enabled
+Create alerts for:
 
-- Regular updates
+* Failed sign-ins
+* Privileged role activations
+* VM availability issues
+* Firewall events
+* Security incidents
 
-- Attack surface reduction rules (if applicable)
+## Vulnerability Management
 
+Regular vulnerability assessments should be performed.
 
+Sources:
 
----
+* Defender for Cloud
+* Operating system scans
+* Third-party scanners
 
+Prioritization:
 
+```text
+Critical
+High
+Medium
+Low
+```
 
-## 7. Data Protection
+Critical vulnerabilities should be remediated immediately.
 
+## Backup and Recovery
 
+Security also includes recoverability.
 
-### Cloud Data
+Recommended services:
 
-- OneDrive and SharePoint with versioning
+* Azure Backup
+* Recovery Services Vault
+* Azure Site Recovery
 
-- Access controlled via Entra groups
+Protect:
 
-- Sharing restrictions configured
+* Virtual Machines
+* Databases
+* File Shares
 
+## Security Operations
 
+A mature Azure environment should include:
 
-### Local Data
+* Security monitoring
+* Incident response procedures
+* Change management
+* Regular access reviews
+* Security assessments
 
-- Stored on file server or NAS
+## Example Security Baseline
 
-- Access controlled via permissions
+```text
+Identity
+├── MFA
+├── Conditional Access
+├── PIM
+└── Break Glass Accounts
 
-- Regular backups
+Network
+├── NSGs
+├── Azure Firewall
+├── Bastion
+└── Private Endpoints
 
+Data
+├── Encryption
+├── TLS
+└── Key Vault
 
+Operations
+├── Defender for Cloud
+├── Azure Monitor
+├── Log Analytics
+└── Azure Policy
+```
 
----
+## Design Recommendations
 
+* Enable MFA for all administrators.
+* Use Conditional Access policies.
+* Implement PIM for privileged roles.
+* Prefer Managed Identities over secrets.
+* Use Azure Firewall for centralized traffic control.
+* Deploy Bastion instead of public management ports.
+* Use Private Endpoints whenever possible.
+* Store secrets in Key Vault.
+* Enable Defender for Cloud.
+* Monitor Secure Score regularly.
+* Apply Azure Policy consistently.
+* Maintain tested backup and recovery procedures.
 
+## Conclusion
 
-## 8. Network Security
+Security in an Azure Landing Zone is implemented through multiple layers of protection covering identity, networking, data, workloads, and operations.
 
-
-
-- VLAN segmentation (users, servers, printers, guest)
-
- Firewall rules:
-
-&#x20; - allow only required traffic
-
-&#x20; - block unnecessary lateral movement
-
-- Guest network isolated
-
-- Printers and IoT isolated
-
-
-
----
-
-
-
-## 9. Application Security
-
-
-
-- Prefer modern authentication (OAuth, SAML)
-
-- Avoid legacy protocols
-
-- Limit access to business applications
-
-- Monitor usage and access
-
-
-
----
-
-
-
-## 10. Logging and Monitoring
-
-
-
-Minimum monitoring includes:
-
-
-
-- Sign-in logs (Entra ID)
-
-- Audit logs
-
-- Endpoint alerts
-
-- Firewall logs
-
-
-
-Optional enhancements:
-
-- Centralized logging
-
-- SIEM integration (e.g., Microsoft Sentinel)
-
-
-
-\---
-
-
-
-## 11. Backup and Recovery
-
-
-
-- Regular backups for:
-
-&#x20; - file server
-
-&#x20; - application server
-
-- Test restore procedures
-
-- Optional cloud backup
-
-
-
----
-
-
-
-## 12. Remote Access Security
-
-
-
-- Secure VPN (to office, if used)
-
-- MFA required
-
-- Restricted access
-
-- Logging enabled
-
-
-
----
-
-
-
-## 13. Security Risks
-
-
-
-Common risks:
-
-
-
-- weak passwords or MFA bypass
-
-- unmanaged devices
-
-- legacy authentication
-
-- flat networks
-
-- overprivileged users
-
-
-
----
-
-
-
-## 14. Summary
-
-
-
-This baseline provides:
-
-
-
-- strong identity protection
-
-- secure device posture
-
-- controlled network access
-
-- practical and scalable security
-
-
-
-It is designed to balance security and usability for small and medium-sized organizations.
-
+A combination of Microsoft Entra ID, Azure Policy, Defender for Cloud, Azure Firewall, Key Vault, and continuous monitoring provides a strong security foundation for enterprise Azure environments.
