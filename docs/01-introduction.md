@@ -6,6 +6,8 @@ An Azure Landing Zone is a structured environment designed to host workloads in 
 
 It provides a scalable foundation that allows organizations to deploy applications and services in a controlled and compliant manner.
 
+An Azure Landing Zone is a set of architectural principles, governance controls, security baselines, identity standards, networking patterns and operational practices that provide a scalable and secure foundation for Azure workloads. These principles are then implemented using Azure services such as Management Groups, Azure Policy, Entra ID, Hub-Spoke networking, Azure Monitor and Defender for Cloud.
+
 ## Core Design Principles
 
 - Subscription democratization
