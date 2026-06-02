@@ -1,346 +1,422 @@
-# Architecture Overview
+# Monitoring and Operations
 
+## Overview
 
+Monitoring and operational management are essential components of an Azure Landing Zone.
 
-## 1. Purpose
+A well-designed monitoring strategy provides visibility into infrastructure, applications, security events, performance metrics, and operational health.
 
+The objective is to detect issues early, reduce downtime, improve reliability, and support operational excellence.
 
+## Monitoring Architecture
 
-This document describes a cloud-first architecture designed for a small to medium-sized organization (50–250 users), combining Microsoft Entra ID, Intune and Microsoft 365 with selected on-premises services for business-critical workloads.
+A typical Azure Landing Zone monitoring architecture consists of:
 
+```text
+Azure Resources
+     |
+Azure Monitor Agent
+     |
+Data Collection Rules
+     |
+Log Analytics Workspace
+     |
+Azure Monitor
+     |
+Alerts / Dashboards / Reporting
+```
 
+All workloads should send operational and diagnostic data to a centralized monitoring platform.
 
-The goal is to modernize identity, endpoint management and collaboration while maintaining operational stability for legacy or performance-sensitive systems.
+## Core Monitoring Components
 
+### Azure Monitor
 
+Azure Monitor is the primary monitoring service in Azure.
 
----
+Capabilities:
 
+* Metrics collection
+* Log collection
+* Alerting
+* Dashboards
+* Performance monitoring
+* Availability monitoring
 
+Azure Monitor provides a unified monitoring experience across Azure services.
 
-## 2. Business Context
+### Log Analytics Workspace
 
+Log Analytics Workspace serves as the central repository for monitoring data.
 
+Collected information may include:
 
-The target organization has the following characteristics:
+* Virtual machine logs
+* Activity Logs
+* Performance counters
+* Security events
+* Application logs
+* Diagnostic logs
 
+Example naming:
 
+```text
+law-prod-monitoring-weu
+law-platform-monitoring-weu
+```
 
-- Single primary office location
+## Azure Monitor Agent
 
-- 50–250 employees
+Azure Monitor Agent (AMA) is responsible for collecting telemetry from virtual machines.
 
-- Windows-based endpoints
+Benefits:
 
-- Microsoft 365 for collaboration
+* Centralized configuration
+* Improved performance
+* Modern architecture
+* Integration with Data Collection Rules
 
-- Business applications for payroll and accounting
+AMA should be deployed to all production virtual machines.
 
-- A GIS/urbanism department working with large files
+## Data Collection Rules
 
-- Limited need for Azure-hosted infrastructure
+Data Collection Rules (DCRs) define what data is collected.
 
-- Desire to reduce on-premises complexity without disrupting operations
+Examples:
 
+* Event Logs
+* Syslog
+* Performance Counters
+* Custom Logs
 
+Example:
 
----
+```text
+Collect:
+CPU
+Memory
+Disk
+Network
+Security Events
+```
 
+Using DCRs provides consistency across environments.
 
+## Metrics Monitoring
 
-## 3. Design Principles
+Metrics provide near real-time operational visibility.
 
+Common metrics:
 
+### Compute
 
-### Cloud-first, not cloud-only
+* CPU Percentage
+* Available Memory
+* Disk Queue Length
+* Disk Latency
 
-Cloud services are used where they provide clear benefits, while on-premises services are retained where necessary.
+### Networking
 
+* Network Throughput
+* Packet Loss
+* Connection Count
 
+### Storage
 
-### Simplicity over complexity
+* Capacity
+* Transactions
+* Latency
 
-Avoid unnecessary Azure infrastructure such as VPN gateways when not required.
+### Databases
 
+* DTU Usage
+* CPU Utilization
+* Storage Consumption
 
+## Log Monitoring
 
-### Identity as the security perimeter
+Logs provide detailed operational and troubleshooting information.
 
-Access control is based on identity, device compliance and Conditional Access rather than network location.
+Examples:
 
+### Activity Logs
 
+Track:
 
-### Performance-aware design
+* Resource creation
+* Resource deletion
+* Role assignments
+* Policy changes
 
-Workloads with high I/O or large files (e.g. GIS) remain on local storage.
+### Security Logs
 
+Track:
 
+* Authentication events
+* Privileged access
+* Security incidents
 
-### Incremental modernization
+### System Logs
 
-The architecture supports gradual migration rather than a full “big bang” transformation.
+Track:
 
+* Service failures
+* Application errors
+* Operating system events
 
+## Virtual Machine Monitoring
 
----
+All production virtual machines should be monitored.
 
+Recommended metrics:
 
+```text
+CPU Utilization
+Memory Usage
+Disk Space
+Disk Latency
+Network Traffic
+Availability
+```
 
-## 4. High-Level Architecture
+Azure VM Insights provides:
 
+* Dependency mapping
+* Performance monitoring
+* Health monitoring
 
+## Alerting Strategy
 
-The solution is divided into two main areas:
+Alerts should be configured for critical operational events.
 
+### Infrastructure Alerts
 
+Examples:
 
-### Cloud Layer
+```text
+CPU > 80%
+Memory > 90%
+Disk Free Space < 15%
+VM Unavailable
+```
 
-- Microsoft Entra ID (identity)
+### Platform Alerts
 
-- Microsoft Intune (device management)
+Examples:
 
-- Microsoft 365 (productivity and collaboration)
+```text
+Firewall Failures
+VPN Gateway Issues
+Storage Availability Problems
+```
 
-- Security controls (MFA, Conditional Access, compliance)
+### Security Alerts
 
+Examples:
 
+```text
+Multiple Failed Sign-ins
+Privileged Role Activation
+Policy Violations
+```
 
-### On-Premises Layer
+## Action Groups
 
-- Office network (LAN, Wi-Fi, firewall)
+Action Groups define how alerts are handled.
 
-- Application server (payroll, accounting)
+Notification methods:
 
-- File server or NAS (GIS, large datasets)
+* Email
+* SMS
+* Voice Call
+* Webhook
+* Logic Apps
+* Azure Functions
 
-- Printers and scanners
+Example:
 
+```text
+Critical Alerts
+  -> Operations Team
 
+Security Alerts
+  -> Security Team
 
----
+Cost Alerts
+  -> Finance Team
+```
 
+## Operational Dashboards
 
+Dashboards provide centralized visibility.
 
-## 5. Identity Model
+Recommended dashboards:
 
+### Executive Dashboard
 
+* Service Availability
+* Resource Health
+* Cost Overview
 
-- All users are created and managed in Microsoft Entra ID
+### Operations Dashboard
 
-- Authentication is cloud-based
+* VM Health
+* Active Alerts
+* Network Health
+* Backup Status
 
-- MFA is enforced for all users
+### Security Dashboard
 
-- Conditional Access policies control access to applications
+* Secure Score
+* Security Incidents
+* Compliance Status
 
-- Administrative roles are separated from standard user accounts
+## Update Management
 
+Operating system patching should be centralized.
 
+Azure Update Manager provides:
 
----
+* Patch assessment
+* Scheduled patching
+* Compliance reporting
+* Maintenance windows
 
+Recommended approach:
 
+```text
+Production
+  -> Monthly Maintenance Window
 
-## 6. Device Management Model
+Development
+  -> Weekly Maintenance Window
+```
 
+## Resource Health
 
+Azure Resource Health provides visibility into service availability.
 
-All endpoints are:
+Examples:
 
+* VM availability
+* Regional incidents
+* Planned maintenance
 
+Resource Health should be included in operational procedures.
 
-- Entra ID joined
+## Backup Monitoring
 
-- Managed by Microsoft Intune  
-- Configured using compliance policies and configuration profiles
+Backups must be monitored continuously.
 
+Recommended checks:
 
+* Backup success rate
+* Failed backup jobs
+* Recovery point availability
+* Retention compliance
 
-Typical baseline includes:
+Services:
 
+* Azure Backup
+* Recovery Services Vault
 
+## Cost Monitoring
 
-- BitLocker encryption  
-- Microsoft Defender enabled
+Operational monitoring should include financial monitoring.
 
-- Firewall enabled
+Examples:
 
-- Automatic updates
+* Budget consumption
+* Cost anomalies
+* Unexpected resource growth
 
-- Standard application set (Office, Teams, browser)
+Tools:
 
+* Cost Management
+* Budgets
+* Cost Alerts
 
+## Logging Retention
 
----
+Retention periods should be defined according to business and compliance requirements.
 
+Example:
 
+```text
+Operational Logs
+  30 Days
 
-## 7. Application Strategy
+Security Logs
+  90 Days
 
+Compliance Logs
+  365 Days
+```
 
+Requirements vary depending on regulations and business needs.
 
-### Cloud-based applications
+## Operational Procedures
 
-- Exchange Online
+Monitoring is effective only when supported by operational processes.
 
-- Microsoft Teams
+Recommended processes:
 
-- SharePoint Online
+### Incident Management
 
-- OneDrive
+* Incident identification
+* Escalation procedures
+* Resolution tracking
+* Post-incident review
 
+### Change Management
 
+* Planned changes
+* Approval process
+* Rollback plans
 
-### On-premises applications
+### Problem Management
 
-- Payroll systems
+* Root cause analysis
+* Trend analysis
+* Continuous improvement
 
-- Accounting software
+## Example Monitoring Baseline
 
-- Legacy line-of-business applications
+```text
+Azure Monitor
+├── Metrics
+├── Logs
+├── Alerts
+└── Dashboards
 
+Log Analytics Workspace
+├── Activity Logs
+├── VM Logs
+├── Security Logs
+└── Diagnostic Logs
 
+Operations
+├── Update Manager
+├── Backup Monitoring
+├── Resource Health
+└── Incident Management
+```
 
-These remain local due to compatibility, licensing or operational constraints.
+## Design Recommendations
 
+* Centralize monitoring using Log Analytics Workspace.
+* Deploy Azure Monitor Agent on all production workloads.
+* Use Data Collection Rules for consistency.
+* Monitor infrastructure, applications, and security events.
+* Implement actionable alerts.
+* Define clear escalation procedures.
+* Use Update Manager for patch compliance.
+* Monitor backups and recovery readiness.
+* Review dashboards regularly.
+* Continuously improve operational processes.
 
+## Conclusion
 
----
+Monitoring and operations are critical for maintaining a reliable Azure environment.
 
-
-
-## 8. Data Strategy
-
-
-
-### Cloud storage
-
-- OneDrive for personal files
-
-- SharePoint for team collaboration
-
-
-
-### Local storage
-
-- File server or NAS for:
-
-&#x20; - GIS data
-
-&#x20; - CAD files
-
-&#x20; - large datasets
-
-&#x20; - high-performance workloads
-
-
-
----
-
-
-
-## 9. Networking Approach
-
-
-
-- No site-to-site VPN to Azure
-
-- Cloud services accessed directly over the internet
-
-- Office network segmented using VLANs
-
-- Firewall enforces access control between segments
-
-
-
----
-
-
-
-## 10. Security Model
-
-
-
-Key controls include:
-
-
-
-- Multi-Factor Authentication (MFA)
-
-- Conditional Access
-
-- Device compliance enforcement
-
-- BitLocker encryption
-
-- Endpoint protection (Defender)
-
-- Network segmentation
-
-- Restricted access to servers
-
-
-
----
-
-
-
-## 11. Benefits of This Approach
-
-
-
-- Reduced infrastructure complexity
-
-- Improved security posture
-
-- Modern device management
-
-- Better remote access experience
-
-- Optimized performance for local workloads
-
-- Scalable and adaptable architecture
-
-
-
----
-
-
-
-## 12. Limitations
-
-
-
-- Some legacy applications remain on-premises
-
-- GIS workloads are not cloud-native
-
-- No full zero-infrastructure model
-
-- Requires careful network design and segmentation
-
-
-
----
-
-
-
-## 13. Future Evolution
-
-
-
-Potential future steps include:
-
-
-
-- Gradual migration of selected workloads to Azure
-
-- Adoption of Universal Print
-
-- Integration with advanced security services (Defender suite)
-
-- Hybrid identity (if required for legacy scenarios)
-
-- Cloud-based backup or DR solutions
-
+Azure Monitor, Log Analytics, Azure Monitor Agent, Data Collection Rules, Update Manager, and structured operational procedures provide the visibility and control required to operate enterprise workloads efficiently and securely.
