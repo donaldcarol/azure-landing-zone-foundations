@@ -1,346 +1,288 @@
-# Architecture Overview
+# Business Continuity and Disaster Recovery
 
+## Overview
 
+Business Continuity and Disaster Recovery (BCDR) ensure that business services remain available during failures, outages, cyberattacks, and disaster scenarios.
 
-## 1. Purpose
+A well-designed Azure Landing Zone should include mechanisms to minimize downtime, protect data, and recover critical services within acceptable business objectives.
 
+## Key Objectives
 
+Business Continuity focuses on maintaining operations during disruptions.
 
-This document describes a cloud-first architecture designed for a small to medium-sized organization (50–250 users), combining Microsoft Entra ID, Intune and Microsoft 365 with selected on-premises services for business-critical workloads.
+Disaster Recovery focuses on restoring services after a major incident.
 
+Typical goals include:
 
+* Minimize downtime
+* Protect critical data
+* Ensure service availability
+* Meet regulatory requirements
+* Support business operations during incidents
 
-The goal is to modernize identity, endpoint management and collaboration while maintaining operational stability for legacy or performance-sensitive systems.
+## Recovery Objectives
 
+### Recovery Time Objective (RTO)
 
+Maximum acceptable downtime.
 
----
+Example:
 
+```text
+Application RTO: 4 Hours
+```
 
+### Recovery Point Objective (RPO)
 
-## 2. Business Context
+Maximum acceptable data loss.
 
+Example:
 
+```text
+Database RPO: 15 Minutes
+```
 
-The target organization has the following characteristics:
+These objectives drive architecture decisions.
 
+## High Availability
 
+High Availability minimizes service interruptions caused by hardware or platform failures.
 
-- Single primary office location
+### Availability Zones
 
-- 50–250 employees
+Availability Zones provide physically separate datacenters within a region.
 
-- Windows-based endpoints
+Example:
 
-- Microsoft 365 for collaboration
+```text
+West Europe
+├── Zone 1
+├── Zone 2
+└── Zone 3
+```
 
-- Business applications for payroll and accounting
+Benefits:
 
-- A GIS/urbanism department working with large files
+* Datacenter fault tolerance
+* Improved service resilience
 
-- Limited need for Azure-hosted infrastructure
+### Availability Sets
 
-- Desire to reduce on-premises complexity without disrupting operations
+Availability Sets distribute virtual machines across fault domains and update domains.
 
+Typical use:
 
+```text
+Web01
+Web02
+```
 
----
+Benefits:
 
+* Reduced maintenance impact
+* Protection against hardware failures
 
+## Backup Strategy
 
-## 3. Design Principles
+Backups provide protection against:
 
+* Accidental deletion
+* Corruption
+* Malware
+* Ransomware
 
+### Azure Backup
 
-### Cloud-first, not cloud-only
+Protects:
 
-Cloud services are used where they provide clear benefits, while on-premises services are retained where necessary.
+* Virtual Machines
+* Azure Files
+* SQL Databases
+* On-Premises Servers
 
+### Recovery Services Vault
 
+Centralized backup management.
 
-### Simplicity over complexity
+Recommended practices:
 
-Avoid unnecessary Azure infrastructure such as VPN gateways when not required.
+* Daily backups
+* Long-term retention
+* Backup monitoring
+* Regular restore testing
 
+## Disaster Recovery
 
+### Azure Site Recovery
 
-### Identity as the security perimeter
+Azure Site Recovery replicates workloads between regions.
 
-Access control is based on identity, device compliance and Conditional Access rather than network location.
+Example:
 
+```text
+Primary Region
+West Europe
 
+Secondary Region
+North Europe
+```
 
-### Performance-aware design
+Capabilities:
 
-Workloads with high I/O or large files (e.g. GIS) remain on local storage.
+* VM replication
+* Automated failover
+* Recovery plans
+* Testing without production impact
 
+## Database Resilience
 
+### Azure SQL Failover Groups
 
-### Incremental modernization
+Provides automatic failover between regions.
 
-The architecture supports gradual migration rather than a full “big bang” transformation.
+Example:
 
+```text
+Primary
+West Europe
 
+Secondary
+North Europe
+```
 
----
+Benefits:
 
+* Automatic failover
+* Read-only replicas
+* Reduced downtime
 
+### Geo-Replication
 
-## 4. High-Level Architecture
+Protects critical databases against regional failures.
 
+## Storage Resilience
 
+Azure Storage supports multiple redundancy models.
 
-The solution is divided into two main areas:
+### LRS
 
+Locally Redundant Storage
 
+### ZRS
 
-### Cloud Layer
+Zone-Redundant Storage
 
-- Microsoft Entra ID (identity)
+### GRS
 
-- Microsoft Intune (device management)
+Geo-Redundant Storage
 
-- Microsoft 365 (productivity and collaboration)
+### GZRS
 
-- Security controls (MFA, Conditional Access, compliance)
+Geo-Zone Redundant Storage
 
+Recommended approach:
 
+```text
+Production:
+GZRS
 
-### On-Premises Layer
+Development:
+LRS
+```
 
-- Office network (LAN, Wi-Fi, firewall)
+## Network Resilience
 
-- Application server (payroll, accounting)
+### Azure Front Door
 
-- File server or NAS (GIS, large datasets)
+Provides:
 
-- Printers and scanners
+* Global load balancing
+* Automatic failover
+* Regional failover
+* Traffic distribution
 
+Example:
 
+```text
+Internet
+   |
+Front Door
+   |
+West Europe App
+North Europe App
+```
 
----
+### Traffic Manager
 
+Alternative DNS-based failover solution.
 
+## Recovery Planning
 
-## 5. Identity Model
+A recovery plan should define:
 
+* Critical services
+* Recovery sequence
+* Recovery responsibilities
+* Communication procedures
 
+Example:
 
-- All users are created and managed in Microsoft Entra ID
+```text
+Priority 1
+Identity Services
 
-- Authentication is cloud-based
+Priority 2
+Network Services
 
-- MFA is enforced for all users
+Priority 3
+Business Applications
 
-- Conditional Access policies control access to applications
+Priority 4
+Development Systems
+```
 
-- Administrative roles are separated from standard user accounts
+## Testing
 
+Recovery capabilities should be tested regularly.
 
+Recommended tests:
 
----
+* Backup restore tests
+* Site Recovery failover tests
+* Application recovery validation
+* Regional outage simulations
 
+Testing ensures procedures remain effective.
 
+## Example BCDR Architecture
 
-## 6. Device Management Model
+```text
+West Europe
+├── Production Workloads
+├── Azure SQL
+├── Storage
+└── Front Door
 
+North Europe
+├── Recovery Workloads
+├── SQL Replica
+└── Geo-Replicated Storage
+```
 
+## Design Recommendations
 
-All endpoints are:
+* Define RTO and RPO requirements.
+* Use Availability Zones for critical workloads.
+* Protect workloads with Azure Backup.
+* Use Azure Site Recovery for disaster recovery.
+* Implement SQL Failover Groups where appropriate.
+* Use geo-redundant storage for critical data.
+* Test recovery procedures regularly.
+* Document failover and recovery processes.
+* Monitor backup and replication status continuously.
 
+## Conclusion
 
+Business Continuity and Disaster Recovery ensure that Azure workloads remain available and recoverable during unexpected events.
 
-- Entra ID joined
-
-- Managed by Microsoft Intune  
-- Configured using compliance policies and configuration profiles
-
-
-
-Typical baseline includes:
-
-
-
-- BitLocker encryption  
-- Microsoft Defender enabled
-
-- Firewall enabled
-
-- Automatic updates
-
-- Standard application set (Office, Teams, browser)
-
-
-
----
-
-
-
-## 7. Application Strategy
-
-
-
-### Cloud-based applications
-
-- Exchange Online
-
-- Microsoft Teams
-
-- SharePoint Online
-
-- OneDrive
-
-
-
-### On-premises applications
-
-- Payroll systems
-
-- Accounting software
-
-- Legacy line-of-business applications
-
-
-
-These remain local due to compatibility, licensing or operational constraints.
-
-
-
----
-
-
-
-## 8. Data Strategy
-
-
-
-### Cloud storage
-
-- OneDrive for personal files
-
-- SharePoint for team collaboration
-
-
-
-### Local storage
-
-- File server or NAS for:
-
-&#x20; - GIS data
-
-&#x20; - CAD files
-
-&#x20; - large datasets
-
-&#x20; - high-performance workloads
-
-
-
----
-
-
-
-## 9. Networking Approach
-
-
-
-- No site-to-site VPN to Azure
-
-- Cloud services accessed directly over the internet
-
-- Office network segmented using VLANs
-
-- Firewall enforces access control between segments
-
-
-
----
-
-
-
-## 10. Security Model
-
-
-
-Key controls include:
-
-
-
-- Multi-Factor Authentication (MFA)
-
-- Conditional Access
-
-- Device compliance enforcement
-
-- BitLocker encryption
-
-- Endpoint protection (Defender)
-
-- Network segmentation
-
-- Restricted access to servers
-
-
-
----
-
-
-
-## 11. Benefits of This Approach
-
-
-
-- Reduced infrastructure complexity
-
-- Improved security posture
-
-- Modern device management
-
-- Better remote access experience
-
-- Optimized performance for local workloads
-
-- Scalable and adaptable architecture
-
-
-
----
-
-
-
-## 12. Limitations
-
-
-
-- Some legacy applications remain on-premises
-
-- GIS workloads are not cloud-native
-
-- No full zero-infrastructure model
-
-- Requires careful network design and segmentation
-
-
-
----
-
-
-
-## 13. Future Evolution
-
-
-
-Potential future steps include:
-
-
-
-- Gradual migration of selected workloads to Azure
-
-- Adoption of Universal Print
-
-- Integration with advanced security services (Defender suite)
-
-- Hybrid identity (if required for legacy scenarios)
-
-- Cloud-based backup or DR solutions
-
+A combination of High Availability, Backup, Site Recovery, Geo-Replication, and operational planning provides a resilient foundation for enterprise workloads.
