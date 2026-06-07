@@ -25,14 +25,21 @@ Azure governance is typically implemented through:
 
 ```text
 Management Groups
-    |
+        |
 Azure Policy
-    |
+        |
 Subscriptions
-    |
-Resource Groups
-    |
+        |
 Resources
+        |
+------------------
+|                |
+Security      Operations
+|                |
+Defender     Azure Monitor
+PIM          Log Analytics
+MFA          Alerts
+CA           Update Manager
 ```
 
 Policies and permissions are inherited throughout the hierarchy.
