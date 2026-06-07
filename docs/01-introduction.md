@@ -29,6 +29,35 @@ An Azure Landing Zone is a set of architectural principles, governance controls,
 - Monitoring
 - Security Controls
 
+```
+Azure Tenant
+│
+├── Management Groups
+│
+├── Identity
+│   ├── Entra ID
+│   ├── MFA
+│   ├── Conditional Access
+│   └── PIM
+│
+├── Connectivity
+│   ├── Hub-Spoke
+│   ├── Firewall
+│   ├── VPN
+│   └── Bastion
+│
+├── Operations
+│   ├── Monitor
+│   ├── Log Analytics
+│   ├── Update Manager
+│   └── Defender
+│
+└── Workloads
+    ├── Production
+    ├── Development
+    └── Sandbox
+```
+
 ## Benefits
 
 - Faster cloud adoption
