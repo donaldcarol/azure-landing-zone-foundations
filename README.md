@@ -1,5 +1,10 @@
-```
+# Azure Landing Zone Architecture
 
+## Overview
+
+This repository documents a reference Azure Landing Zone architecture covering governance, identity, networking, security, monitoring, business continuity, and operational management.
+
+```
 azure-landing-zone-foundations
 │
 ├── README.md
@@ -21,3 +26,19 @@ azure-landing-zone-foundations
 └── enterprise-scenarios
 
 ```
+
+## Architecture Domains
+
+- Governance
+- Identity
+- Networking
+- Security
+- Monitoring
+- Business Continuity
+
+## Documentation
+
+
+
+
+
